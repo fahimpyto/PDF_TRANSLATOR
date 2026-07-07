@@ -4,3 +4,4 @@ pymupdf
 reportlab
 pytesseract
 Pillow
+rich
