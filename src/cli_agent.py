@@ -202,6 +202,9 @@ class AgentCLI:
 
         start = time.time()
         total = len(self.pages)
+        BATCH_SIZE = 10
+        last_batch_end = 0
+        stem = Path(self.input_pdf).stem
 
         with Progress(
             SpinnerColumn(spinner_name="dots"),
@@ -286,16 +289,43 @@ class AgentCLI:
                     f"[dim]({total_chars} chars, {len(chunks)} chunk(s))[/]"
                 )
 
+                done_count = len(self.translated_pages)
+                if done_count % BATCH_SIZE == 0:
+                    batch_start = last_batch_end + 1
+                    batch_end = done_count
+                    batch_pdf = f"output/{stem}_{batch_start:03d}-{batch_end:03d}.pdf"
+                    batch_pages = self.translated_pages[-BATCH_SIZE:]
+                    self.console.log(f"[cyan]Generating batch PDF {batch_start:03d}-{batch_end:03d}...[/]")
+                    create_bengali_pdf(batch_pages, batch_pdf, config.FONT_PATH)
+                    self.console.log(f"[green]>[/] Saved [bold white]{batch_pdf}[/]")
+                    last_batch_end = batch_end
+
         elapsed = time.time() - start
 
         if not STOP_FLAG:
             self.console.print(f"\n[bold green]> Translation complete in {elapsed:.1f}s[/]")
-            self.console.print("[cyan]Generating PDF...[/]")
+            remaining = self.translated_pages[last_batch_end:]
+            if remaining:
+                batch_start = last_batch_end + 1
+                batch_end = len(self.translated_pages)
+                batch_pdf = f"output/{stem}_{batch_start:03d}-{batch_end:03d}.pdf"
+                self.console.print("[cyan]Generating final batch PDF...[/]")
+                create_bengali_pdf(remaining, batch_pdf, config.FONT_PATH)
+                self.console.print(f"[green]>[/] Saved [bold white]{batch_pdf}[/]")
+            self.console.print("[cyan]Generating full PDF...[/]")
             create_bengali_pdf(self.translated_pages, self.output_pdf, config.FONT_PATH)
-            self.console.print(f"\n[bold green]>[/] Saved to [bold white]{self.output_pdf}[/]")
+            self.console.print(f"[green]>[/] Saved [bold white]{self.output_pdf}[/]")
         else:
             done = len(self.translated_pages)
             self.console.print(f"\n[bold yellow]||  Paused at {done}/{total} pages[/]")
+            remaining = self.translated_pages[last_batch_end:]
+            if remaining:
+                batch_start = last_batch_end + 1
+                batch_end = done
+                batch_pdf = f"output/{stem}_{batch_start:03d}-{batch_end:03d}.pdf"
+                self.console.print("[cyan]Generating partial batch PDF before pause...[/]")
+                create_bengali_pdf(remaining, batch_pdf, config.FONT_PATH)
+                self.console.print(f"[green]>[/] Saved [bold white]{batch_pdf}[/]")
 
         self.running = False
 
