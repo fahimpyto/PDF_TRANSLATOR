@@ -1,0 +1,6 @@
+openai
+python-dotenv
+pymupdf
+reportlab
+pytesseract
+Pillow

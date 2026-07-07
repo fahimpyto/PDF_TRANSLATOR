@@ -1,0 +1,13 @@
+.env
+cache/
+logs/
+output/*.pdf
+fonts/*.ttf
+__pycache__/
+*.pyc
+*.pyo
+progress.json
+model_config.json
+*.pdf
+!references/*.pdf
+agent.py
