@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """PDF Translator — English to literary Bengali CLI agent."""
 
+import os
 import logging
+
+os.makedirs("logs", exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
